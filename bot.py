@@ -33,8 +33,19 @@ if os.path.exists('.env.render'):
 else:
     load_dotenv()
 
-# Get token from environment variables
-TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+# Try to import from regular config first
+try:
+    from config import TELEGRAM_BOT_TOKEN
+    if not TELEGRAM_BOT_TOKEN:
+        print("Token not found in config.py, trying render_config...")
+        from render_config import TELEGRAM_BOT_TOKEN
+except ImportError:
+    try:
+        from render_config import TELEGRAM_BOT_TOKEN
+    except ImportError:
+        print("Neither config module could be imported!")
+        import os
+        TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 # Print debug information
 print(f"Token found: {bool(TELEGRAM_BOT_TOKEN)}")
@@ -1193,6 +1204,13 @@ def main():
     """Start the bot"""
     print("In main function, setting up the bot...")
     
+    # Add this block to try direct environment access as a last resort
+    import os
+    token = os.environ.get('TELEGRAM_BOT_TOKEN')
+    if not token:
+        print("ERROR: Token still not found in main(), exiting")
+        return
+        
     # Import here to avoid circular imports
     from position_tracker import set_api_functions as set_position_tracker_functions
     from price_alerts import set_api_functions as set_price_alerts_functions
@@ -1204,7 +1222,12 @@ def main():
     set_price_alerts_functions(get_account_info, get_market_data)
     
     # Create the Application
-    print(f"Building application with token: {TELEGRAM_BOT_TOKEN[:4]}...{TELEGRAM_BOT_TOKEN[-4:]}")
+    if TELEGRAM_BOT_TOKEN:
+        masked_token = TELEGRAM_BOT_TOKEN[:4] + "..." + TELEGRAM_BOT_TOKEN[-4:]
+        print(f"Building application with token: {masked_token}")
+    else:
+        print("Warning: No token found, cannot initialize bot")
+        exit(1)  # Exit early if no token
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
 
     # Add command handlers
