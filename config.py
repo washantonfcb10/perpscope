@@ -2,20 +2,23 @@
 import os
 from dotenv import load_dotenv
 
-# Try to load environment variables from .env file if it exists
-load_dotenv(verbose=True)  # This will not fail if the file doesn't exist
+# Load environment variables from .env file (for local development)
+load_dotenv()
 
-print("Available environment variables:", list(os.environ.keys()))
+# Get the token from environment variables
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+
+# Print debug information
 print("Looking for TELEGRAM_BOT_TOKEN...")
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-print(f"Token found: {TELEGRAM_BOT_TOKEN is not None}")
-# Bot configuration
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+print(f"Token found: {bool(TELEGRAM_BOT_TOKEN)}")
+print(f"Available environment variables: {list(os.environ.keys())}")
 
-# Add a fallback for local development if token isn't found
 if not TELEGRAM_BOT_TOKEN:
     print("WARNING: No TELEGRAM_BOT_TOKEN found in environment variables.")
     print("Set this variable in your .env file for local development or in your hosting platform.")
+
+# Bot configuration
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
 # Hyperliquid API configuration
 HYPERLIQUID_API_URL = "https://api.hyperliquid.xyz/info"

@@ -27,7 +27,7 @@ print("Bot is starting...")
 logger.info("Bot is initializing...")
 
 # Validate bot token
-TELEGRAM_BOT_TOKEN = config.TELEGRAM_BOT_TOKEN
+from config import TELEGRAM_BOT_TOKEN  # Make sure this import is correct
 if TELEGRAM_BOT_TOKEN:
     masked_token = TELEGRAM_BOT_TOKEN[:4] + "..." + TELEGRAM_BOT_TOKEN[-4:]
     print(f"Bot token loaded: {masked_token}")
