@@ -2,26 +2,21 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file (for local development)
+# Load environment variables from .env file (for local development only)
 load_dotenv()
 
-# Get the token from environment variables - only set this once!
+# Get the token from environment variables
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 
-# Print debug information
+# Print debug information safely
 print("Looking for TELEGRAM_BOT_TOKEN...")
 print(f"Token found: {bool(TELEGRAM_BOT_TOKEN)}")
-print(f"Token value (first few chars): {TELEGRAM_BOT_TOKEN[:5]}..." if TELEGRAM_BOT_TOKEN else "Token not found")
-print(f"Available environment variables: {list(os.environ.keys())}")
 
 if not TELEGRAM_BOT_TOKEN:
     print("WARNING: No TELEGRAM_BOT_TOKEN found in environment variables.")
     print("Set this variable in your .env file for local development or in your hosting platform.")
 
 # Bot configuration
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-
-# Hyperliquid API configuration
 HYPERLIQUID_API_URL = "https://api.hyperliquid.xyz/info"
 HYPERLIQUID_API_V2_URL = "https://api-v2.hyperliquid.xyz"
 
@@ -49,34 +44,7 @@ API_ENDPOINTS = {
 
 # Sample data for development and testing
 SAMPLE_ACCOUNT_DATA = {
-    "marginSummary": {"accountValue": "327916.95555", "totalNtlPos": "892655.67336", "totalRawUsd": "485816.62891", "totalMarginUsed": "248568.157786"}, 
-    "crossMarginSummary": {"accountValue": "327916.95555", "totalNtlPos": "892655.67336", "totalRawUsd": "485816.62891", "totalMarginUsed": "248568.157786"}, 
-    "assetPositions": [
-        {
-            "type": "oneWay", 
-            "position": {
-                "coin": "HYPE", 
-                "szi": "-33546.92", 
-                "leverage": {"type": "cross", "value": 3}, 
-                "entryPx": "16.2323", 
-                "positionValue": "525277.67336", 
-                "unrealizedPnl": "19268.6216", 
-                "liquidationPx": "20.8609356408"
-            }
-        }, 
-        {
-            "type": "oneWay", 
-            "position": {
-                "coin": "BERA", 
-                "szi": "55000.0", 
-                "leverage": {"type": "cross", "value": 5}, 
-                "entryPx": "8.41613", 
-                "positionValue": "367378.0", 
-                "unrealizedPnl": "-95509.50483", 
-                "liquidationPx": "2.565804512"
-            }
-        }
-    ]
+    # Your sample data here
 }
 
 SAMPLE_MARKET_DATA = {

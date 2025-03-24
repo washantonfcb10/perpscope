@@ -1,12 +1,5 @@
-# Environment variables
 .env
-.env.*
-
-# Python cache
+.env.render
 __pycache__/
-*.py[cod]
-*$py.class
-
-# Virtual environment
+*.pyc
 venv/
-env/

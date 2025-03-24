@@ -1204,70 +1204,21 @@ def main():
     """Start the bot"""
     print("In main function, setting up the bot...")
     
-    # Add this block to try direct environment access as a last resort
-    import os
-    token = os.environ.get('TELEGRAM_BOT_TOKEN')
-    if not token:
-        print("ERROR: Token still not found in main(), exiting")
-        return
-        
-    # Import here to avoid circular imports
-    from position_tracker import set_api_functions as set_position_tracker_functions
-    from price_alerts import set_api_functions as set_price_alerts_functions
-    from price_alerts import setup_alerts, alert_manager
-    
-    # Set the API functions for the other modules
-    print("Setting up API functions...")
-    set_position_tracker_functions(get_account_info, get_market_data)
-    set_price_alerts_functions(get_account_info, get_market_data)
-    
-    # Create the Application
-    if TELEGRAM_BOT_TOKEN:
-        masked_token = TELEGRAM_BOT_TOKEN[:4] + "..." + TELEGRAM_BOT_TOKEN[-4:]
-        print(f"Building application with token: {masked_token}")
-    else:
-        print("Warning: No token found, cannot initialize bot")
-        exit(1)  # Exit early if no token
-    application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
-
-    # Add command handlers
-    print("Adding command handlers...")
-    application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("menu", menu_command))
-    application.add_handler(CommandHandler("track", track_wallet_command))
-    application.add_handler(CommandHandler("wallets", wallets_command))
-    application.add_handler(CommandHandler("markets", markets_command))
-    application.add_handler(CommandHandler("portfolio", portfolio_command))
-    application.add_handler(CommandHandler("positions", portfolio_command))  # Alias for portfolio
-    application.add_handler(CommandHandler("position", position_command))
-    application.add_handler(CommandHandler("settings", settings_command))
-    application.add_handler(CommandHandler("refresh", refresh_command))
-    
-    # Add callback query handler for navigation
-    application.add_handler(CallbackQueryHandler(handle_callback))
-    
-    # Add message handler for wallet input
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_wallet_input))
-    
-    # Set up alerts system
-    print("Setting up alerts system...")
-    setup_alerts(application)
-    
-    # Add alert checking job
-    print("Setting up alert check job...")
-    job_queue = application.job_queue
-    job_queue.run_repeating(handle_alert_check_job, interval=config.ALERT_CHECK_INTERVAL, first=10)
-    
-    # Setup command menu
-    job_queue.run_once(lambda _: set_commands(application), 0)
-    
-    # Start the Bot
-    print("Starting the bot...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
-    print("Bot is now running!")
+    # Clean token check
+    if not config.TELEGRAM_BOT_TOKEN:
+        print("ERROR: No bot token found in environment variables!")
+        exit(1)
+    try:
+        main()
+    except Exception as e:
+        logger.error(f"Critical error starting bot: {e}")
+        print(f"Critical error: {e}")
 
 if __name__ == '__main__':
+    # Clean token check
+    if not config.TELEGRAM_BOT_TOKEN:
+        print("ERROR: No bot token found in environment variables!")
+        exit(1)
     try:
         main()
     except Exception as e:
