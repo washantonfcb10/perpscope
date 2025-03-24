@@ -5,6 +5,10 @@ from dotenv import load_dotenv
 # Try to load environment variables from .env file if it exists
 load_dotenv(verbose=True)  # This will not fail if the file doesn't exist
 
+print("Available environment variables:", list(os.environ.keys()))
+print("Looking for TELEGRAM_BOT_TOKEN...")
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+print(f"Token found: {TELEGRAM_BOT_TOKEN is not None}")
 # Bot configuration
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
