@@ -1242,4 +1242,7 @@ def main():
     print("Bot is now running!")
 
 if __name__ == '__main__':
+    if not config.TELEGRAM_BOT_TOKEN:
+        logger.error("No bot token found in environment variables!")
+        return
     main()

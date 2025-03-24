@@ -5,12 +5,13 @@ from dotenv import load_dotenv
 # Load environment variables from .env file (for local development)
 load_dotenv()
 
-# Get the token from environment variables
+# Get the token from environment variables - only set this once!
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 # Print debug information
 print("Looking for TELEGRAM_BOT_TOKEN...")
 print(f"Token found: {bool(TELEGRAM_BOT_TOKEN)}")
+print(f"Token value (first few chars): {TELEGRAM_BOT_TOKEN[:5]}..." if TELEGRAM_BOT_TOKEN else "Token not found")
 print(f"Available environment variables: {list(os.environ.keys())}")
 
 if not TELEGRAM_BOT_TOKEN:
