@@ -33,23 +33,23 @@ if os.path.exists('.env.render'):
 else:
     load_dotenv()
 
-# Try to import from regular config first
+# Safely get token
 try:
-    from config import TELEGRAM_BOT_TOKEN
+    TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
     if not TELEGRAM_BOT_TOKEN:
-        print("Token not found in config.py, trying render_config...")
-        from render_config import TELEGRAM_BOT_TOKEN
-except ImportError:
-    try:
-        from render_config import TELEGRAM_BOT_TOKEN
-    except ImportError:
-        print("Neither config module could be imported!")
-        import os
-        TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
-
-# Print debug information
-print(f"Token found: {bool(TELEGRAM_BOT_TOKEN)}")
-print(f"Token first 4 chars: {TELEGRAM_BOT_TOKEN[:4] if TELEGRAM_BOT_TOKEN else 'None'}")
+        # Fallback to config
+        TELEGRAM_BOT_TOKEN = getattr(config, 'TELEGRAM_BOT_TOKEN', None)
+        
+    if TELEGRAM_BOT_TOKEN:
+        print(f"Bot token loaded successfully")
+        logger.info("Bot token loaded successfully")
+    else:
+        print("WARNING: No bot token found in environment variables or config")
+        logger.warning("No bot token found in environment variables or config")
+except Exception as e:
+    print(f"Error loading token: {e}")
+    logger.error(f"Error loading token: {e}")
+    TELEGRAM_BOT_TOKEN = None
 
 # Function to get main menu as inline buttons with improved layout
 def get_main_menu_markup():
@@ -1204,23 +1204,72 @@ def main():
     """Start the bot"""
     print("In main function, setting up the bot...")
     
-    # Clean token check
-    if not config.TELEGRAM_BOT_TOKEN:
-        print("ERROR: No bot token found in environment variables!")
-        exit(1)
+    # Check token availability
+    if not TELEGRAM_BOT_TOKEN:
+        print("ERROR: Cannot start bot without valid token")
+        logger.error("Cannot start bot without valid token")
+        return
+    
     try:
-        main()
+        # Import modules that depend on this file
+        from position_tracker import set_api_functions as set_position_tracker_functions
+        from price_alerts import set_api_functions as set_price_alerts_functions
+        from price_alerts import setup_alerts
+        
+        # Set the API functions
+        print("Setting up API functions...")
+        set_position_tracker_functions(get_account_info, get_market_data)
+        set_price_alerts_functions(get_account_info, get_market_data)
+        
+        # Create the Application
+        print("Building application...")
+        application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+        
+        # Add command handlers
+        print("Adding command handlers...")
+        application.add_handler(CommandHandler("start", start_command))
+        application.add_handler(CommandHandler("help", help_command))
+        application.add_handler(CommandHandler("menu", menu_command))
+        application.add_handler(CommandHandler("track", track_wallet_command))
+        application.add_handler(CommandHandler("wallets", wallets_command))
+        application.add_handler(CommandHandler("markets", markets_command))
+        application.add_handler(CommandHandler("portfolio", portfolio_command))
+        application.add_handler(CommandHandler("positions", portfolio_command))
+        application.add_handler(CommandHandler("position", position_command))
+        application.add_handler(CommandHandler("settings", settings_command))
+        application.add_handler(CommandHandler("refresh", refresh_command))
+        
+        # Add callback query handler
+        application.add_handler(CallbackQueryHandler(handle_callback))
+        
+        # Add message handler
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_wallet_input))
+        
+        # Set up alerts
+        print("Setting up alerts system...")
+        setup_alerts(application)
+        
+        # Add alert checking job - but only if token is valid
+        print("Setting up alert check job...")
+        job_queue = application.job_queue
+        job_queue.run_repeating(handle_alert_check_job, interval=config.ALERT_CHECK_INTERVAL, first=10)
+        
+        # Setup command menu
+        job_queue.run_once(lambda _: set_commands(application), 0)
+        
+        # Start the Bot
+        print("Starting the bot...")
+        application.run_polling(allowed_updates=Update.ALL_TYPES)
+        print("Bot is now running!")
+        
     except Exception as e:
-        logger.error(f"Critical error starting bot: {e}")
-        print(f"Critical error: {e}")
+        logger.error(f"Failed to initialize bot: {e}")
+        print(f"ERROR: Failed to initialize bot: {e}")
 
 if __name__ == '__main__':
-    # Clean token check
-    if not config.TELEGRAM_BOT_TOKEN:
-        print("ERROR: No bot token found in environment variables!")
-        exit(1)
     try:
         main()
     except Exception as e:
-        logger.error(f"Critical error starting bot: {e}")
-        print(f"Critical error: {e}")
+        logger.error(f"Critical error: {e}")
+        print(f"CRITICAL ERROR: {e}")
+        exit(1)
